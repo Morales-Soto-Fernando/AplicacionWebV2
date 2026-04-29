@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: gamerent_postgres
+    environment:
+      POSTGRES_USER: gamerent
+      POSTGRES_PASSWORD: gamerent123
+      POSTGRES_DB: gamerent_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - gamerent_pgdata:/var/lib/postgresql/data
+
+volumes:
+  gamerent_pgdata:

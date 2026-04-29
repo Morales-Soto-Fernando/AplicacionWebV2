@@ -1,0 +1,124 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+  // NO pongas "output = ..." si vas a importar PrismaClient desde "@prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  // La URL va en prisma.config.ts (datasource.url)
+}
+
+enum OrderStatus {
+  PENDING
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum InventoryStatus {
+  AVAILABLE
+  RESERVED
+  IN_RENT
+  MAINTENANCE
+  RETIRED
+}
+
+enum InventoryCondition {
+  NEW
+  GOOD
+  FAIR
+  DAMAGED
+}
+
+enum ProductCategory {
+  CONSOLE
+  ACCESSORY
+  GAME
+}
+
+model Product {
+  id          String          @id @default(uuid())
+  name        String
+  brand       String
+  model       String?
+  category    ProductCategory @default(CONSOLE)
+  description String?
+  imageUrl    String?
+  priceCents  Int
+  currency    String          @default("MXN")
+  isActive    Boolean         @default(true)
+
+  inventoryUnits InventoryUnit[]
+  orderItems     OrderItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+  @@index([brand])
+  @@index([isActive])
+}
+
+model InventoryUnit {
+  id            String             @id @default(uuid())
+  productId     String
+  serialNumber  String             @unique
+  status        InventoryStatus    @default(AVAILABLE)
+  condition     InventoryCondition @default(GOOD)
+  notes         String?
+
+  product    Product     @relation(fields: [productId], references: [id], onDelete: Restrict)
+  orderItems OrderItem[] // una unidad puede aparecer en varios rentals históricos
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([productId])
+  @@index([status])
+}
+
+model Order {
+  id            String      @id @default(uuid())
+  customerName  String
+  customerEmail String
+  customerPhone String?
+  status        OrderStatus @default(PENDING)
+
+  startDate DateTime
+  endDate   DateTime
+
+  totalCents Int
+  currency   String      @default("MXN")
+
+  items     OrderItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([customerEmail])
+}
+
+model OrderItem {
+  id              String  @id @default(uuid())
+  orderId         String
+  productId       String
+  inventoryUnitId String?
+
+  quantity       Int @default(1)
+  unitPriceCents Int
+  lineTotalCents Int
+
+  order         Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product       Product        @relation(fields: [productId], references: [id], onDelete: Restrict)
+  inventoryUnit InventoryUnit? @relation(fields: [inventoryUnitId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orderId])
+  @@index([productId])
+  @@index([inventoryUnitId])
+}
