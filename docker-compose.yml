@@ -1,0 +1,28 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: backend_app
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: "postgresql://gamerent:gamerent123@gamerent_postgres:5432/gamerent_db?schema=public"
+    networks:
+      - db_default
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: frontend_app
+    restart: always
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    networks:
+      - db_default
+
+networks:
+  db_default:
+    external: true
