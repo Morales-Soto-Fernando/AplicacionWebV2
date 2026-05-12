@@ -87,7 +87,7 @@ gamerent_postgres
 Desde la raíz del proyecto:
 
 ```bash
-cd ProyectoDT
+cd ProyectoDT (la direccion es variable , depende de  la ruta donde almacenes  el proyecto)
 docker compose up --build
 ```
 
